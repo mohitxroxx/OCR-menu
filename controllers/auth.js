@@ -176,7 +176,7 @@ app.post('/upload', upload.single('image'), async (req, res) => {
         const response = await axios.post('https://api.ocr.space/parse/image', formData, {
             headers: {
                 ...formData.getHeaders(),
-            'apikey':'K83459155088957'
+            'apikey':process.env.key
         },
         });
 
