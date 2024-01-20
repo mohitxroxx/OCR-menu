@@ -20,6 +20,10 @@ const PORT = app.listen(process.env.PORT, () =>
   console.log(`SERVER UP and running at ${process.env.PORT}`)
 )
 
+app.get("/",(req,res) => {
+  res.status(200).send("Server up and running")
+})
+
 const io = socket(PORT, {
   cors: {
     origin: "*",
