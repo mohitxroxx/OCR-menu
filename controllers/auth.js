@@ -6,6 +6,12 @@ const express = require("express")
 const cookieParser = require('cookie-parser')
 const bcrypt = require("bcrypt")
 const nodemailer = require('nodemailer')
+const fs = require('fs').promises
+const multer = require('multer')
+const FormData = require('form-data')
+const axios = require('axios')
+const upload = multer()
+
 let permanent
 
 const app = express()
@@ -48,21 +54,26 @@ app.post("/register", async (req, res) => {
         const { username, email, password } = req.body
         const usernameCheck = await User.findOne({ username })
         if (usernameCheck)
-            return res.json({ msg: "Username already used", status: false })
+            // return res.json({ msg: "Username already used", status: false })
+            return res.status(404).json({ error: 'Username already used' })
         const emailCheck = await User.findOne({ email })
         if (emailCheck)
-            return res.json({ msg: "Email already used", status: false })
-        const hashedPassword = await bcrypt.hash(password, 10)
-        const user = await User.create({
-            email,
-            username,
-            password: hashedPassword,
-        })
-        delete user.password
-        return res.json({ msg: "Registered successfully", status: true })
+            // return res.json({ msg: "Email already used", status: false })
+            return res.status(404).json({ error: 'Email already used' })
+        // const hashedPassword = await bcrypt.hash(password, 10)
+        // const user = await User.create({
+        //     email,
+        //     username,
+        //     password: hashedPassword,
+        // })
+        // delete user.password
+        // return res.json({ msg: "Registered successfully", status: true })
+        const otpreq={...req,body:{email}}
+        await otp(otpreq,res)
+        return res.status(200).json({ msg: 'Check Mail for further process' })
     } catch (error) {
-        console.error('Error registering user:', error)
-        res.json({ status: false, msg: 'Internal server error' })
+        // console.error('Error registering user:', error)
+        return res.status(400).json({ error: 'Error registering the user' })
     }
 })
 
@@ -70,18 +81,11 @@ app.post("/register", async (req, res) => {
 
 
 app.get("/home", auth, (req, res) => {
-    res.status(200).send("User Logged in and Session is Active")
+    // res.status(200).send("User Logged in and Session is Active")
+    return res.status(200).json({ msg: 'User Logged in and Session is Active' })
 })
 
 
-app.get("/logout",async(req, res) => {
-    try {
-      res.clearCookie('jwt')
-      return res.status(200).send("User Logged out and session ended")
-    } catch (ex) {
-      next(ex)
-    }
-  })
 
 
 
@@ -95,9 +99,11 @@ let transporter = nodemailer.createTransport({
     },
 })
 
-app.post("/otp", async (req, res) => {
+// app.post("/otp", async (req, res) => {
+    async function otp(req,res){
     const { email } = req.body;
     const otp = Math.ceil(Math.random() * 1000000);
+    console.log(email)
     permanent = otp
     const mailOptions = {
         from: SMTP_EMAIL,
@@ -116,33 +122,90 @@ app.post("/otp", async (req, res) => {
         <p style="font-size: 16px; color: #333;">We are happy to have you.</p>
                     <div style="font-size: 16px; color: #333; margin-top: 20px; text-align: center;">
                     <h5 style="font-size: 18px;">Best Regards</h5>
-                        <h5 style="font-size: 18px;">Health Bot</h5>
+                    <h5 style="font-size: 18px;">Health Bot</h5>
                     </div>
                 </td>
-            </tr>
-            </table>
-            </body>
+                </tr>
+                </table>
+                </body>
             </body>`,
     }
     transporter
         .sendMail(mailOptions)
         .then(() => {
-            res.json({ status: true, message: 'Mail Sent to the user' })
+            console.log("Mail sent to the user")
+            // return res.status(200).json({ msg: 'Mail sent to the user' })
         })
         .catch((err) => {
             console.log(err);
+            // return res.status(400).json("Error sending mail to the user")
         })
-    })
-
+    }
+    
 app.post("/verify", async (req, res) => {
-    const { otp } = req.body
+    const { username, email, password,otp } = req.body
 
     if (permanent == otp) {
-        res.json({ status: true, message: 'OTP verified successfully' })
+        // res.json({ status: true, message: 'OTP verified successfully' })
+        const hashedPassword = await bcrypt.hash(password, 10)
+        const user = await User.create({
+            email,
+            username,
+            password: hashedPassword,
+        })
+        delete user.password
+        return res.status(200).json("Registered Successfully")
     } else {
-        res.json({ status: false, message: 'Invalid OTP' })
+        return res.status(400).json("Invalid OTP cant register")
+        // res.json({ status: false, message: 'Invalid OTP' })
     }
 })
+
+
+app.post('/upload', upload.single('image'), async (req, res) => {
+    try {
+        const image = req.file;
+
+        const formData = new FormData();
+
+        formData.append('file', image.buffer, {
+            filename: image.originalname,
+            contentType: image.mimetype,
+        });
+
+        const response = await axios.post('https://api.ocr.space/parse/image', formData, {
+            headers: {
+                ...formData.getHeaders(),
+            'apikey':'K83459155088957'
+        },
+        });
+
+        const text = response.data;
+
+        res.json({ text });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'An error occurred while processing the image' });
+    }
+})
+
+
+app.get("/logout",async(req, res) => {
+    try {
+      res.clearCookie('jwt')
+    //   return res.status(200).send("User Logged out and session ended")
+    return res.status(200).json({ msg: 'User Logged out and session ended' })
+} catch (ex) {
+    // next(ex)
+    return res.status(400).json({ msg: 'Failed request' })
+    }
+  })
+
+
+
+
+
+
 
 
 module.exports = app;
