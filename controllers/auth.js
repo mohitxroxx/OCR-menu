@@ -48,7 +48,6 @@ app.post("/login", async (req, res) => {
 })
 
 
-
 app.post("/register", async (req, res) => {
     try {
         const { username, email, password } = req.body
@@ -180,8 +179,8 @@ app.post('/upload', upload.single('image'), async (req, res) => {
         },
         });
 
-        const text = response.data;
-
+        const text = response.data.ParsedResults[0].ParsedText;
+        // console.log(response.data.ParsedResults[0].ParsedText);
         res.json({ text });
     } catch (err) {
         console.error(err);
