@@ -101,8 +101,8 @@ let transporter = nodemailer.createTransport({
 // app.post("/otp", async (req, res) => {
     async function otp(req,res){
     const { email } = req.body;
-    const otp = Math.ceil(Math.random() * 1000000);
-    console.log(email)
+    const otp = Math.ceil(Math.random() * 10000);
+    console.log(otp)
     permanent = otp
     const mailOptions = {
         from: SMTP_EMAIL,
@@ -177,7 +177,7 @@ app.post('/upload', upload.single('image'), async (req, res) => {
                 ...formData.getHeaders(),
             'apikey':process.env.key
         },
-        });
+        })
 
         const text = response.data.ParsedResults[0].ParsedText;
         // console.log(response.data.ParsedResults[0].ParsedText);

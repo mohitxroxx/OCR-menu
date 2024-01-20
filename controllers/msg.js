@@ -25,7 +25,6 @@ module.exports.getMessages = async (req, res, next) => {
 
 module.exports.addMessage = async (req, res, next) => {
   try {
-
     const authtoken=await axios.get('http://localhost:6000')
     console.log(authtoken.data)
     const { from, to, message } = req.body

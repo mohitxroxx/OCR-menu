@@ -1,14 +1,14 @@
-const express=require('express')
-const dotenv=require('dotenv')
-const cors=require('cors')
-const socket=require('socket.io')
+const express = require('express')
+const dotenv = require('dotenv')
+const cors = require('cors')
+const socket = require('socket.io')
 const msg = require("./routes/msg");
 const connectDB = require('./config/db')
 const auth = require("./routes/admin")
-dotenv.config({path:'./config/.env'})
+dotenv.config({ path: './config/.env' })
 connectDB()
 
-const app=express()
+const app = express()
 app.use(cors());
 app.use(express.json());
 
@@ -20,7 +20,7 @@ const PORT = app.listen(process.env.PORT, () =>
   console.log(`SERVER UP and running at ${process.env.PORT}`)
 )
 
-app.get("/",(req,res) => {
+app.get("/", (req, res) => {
   res.status(200).send("Server up and running")
 })
 
