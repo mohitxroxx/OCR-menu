@@ -101,7 +101,7 @@ let transporter = nodemailer.createTransport({
 // app.post("/otp", async (req, res) => {
     async function otp(req,res){
     const { email } = req.body;
-    const otp = Math.ceil(Math.random() * 10000);
+    const otp = Math.floor(1000 + Math.random() * 9000)
     console.log(otp)
     permanent = otp
     const mailOptions = {
@@ -153,7 +153,7 @@ app.post("/verify", async (req, res) => {
             password: hashedPassword,
         })
         delete user.password
-        return res.status(200).json("Registered Successfully")
+        return res.status(200).json({ message: "Registered Successfully", user: user });
     } else {
         return res.status(400).json("Invalid OTP cant register")
         // res.json({ status: false, message: 'Invalid OTP' })
